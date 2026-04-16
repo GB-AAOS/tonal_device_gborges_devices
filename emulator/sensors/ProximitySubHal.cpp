@@ -57,11 +57,6 @@ Return<Result> ProximitySubHal::activate(int32_t sensorHandle, bool enabled) {
 void ProximitySubHal::sensorThreadLoop() {
     auto loopStartTime = std::chrono::steady_clock::now();
     
-    // Calculate the interval based on the frequency
-    const auto interval = std::chrono::microseconds(
-        static_cast<long long>(1000000.0f / kSensorFrequencyHz)
-    );
-
     while (!mStopThread) {
         if (mEnabled) {
             auto now = std::chrono::steady_clock::now();
@@ -69,8 +64,7 @@ void ProximitySubHal::sensorThreadLoop() {
                 now - loopStartTime
             ).count();
 
-            // Check for manual override via system property
-            // Any value outside of [0, 1] indicates "no override active"
+            // Override logic
             std::string propVal = android::base::GetProperty("my.proximity.override", "-1.0");
             float overrideVal = std::strtof(propVal.c_str(), nullptr);
             
@@ -78,6 +72,7 @@ void ProximitySubHal::sensorThreadLoop() {
             if (overrideVal >= 0.0f && overrideVal <= 1.0f) {
                 finalValue = overrideVal;
             } else {
+                // Signal math stays the same, but now it's sampled every 500ms
                 finalValue = 0.5f + 0.5f * sin(2.0f * kPi * kSensorFrequencyHz * elapsedSeconds);
             }
 
@@ -94,9 +89,11 @@ void ProximitySubHal::sensorThreadLoop() {
             }
         }
         
-        std::this_thread::sleep_for(interval);
+        // Sleep for the fixed sampling interval
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
+
 // ========================================================
 //                Unused methods (stubs)
 // ========================================================
