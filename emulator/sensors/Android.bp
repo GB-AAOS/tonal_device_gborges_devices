@@ -1,3 +1,31 @@
+cc_library_shared {
+    name: "android.hardware.sensors@2.1-impl.gborges",
+    vendor: true,
+    relative_install_path: "hw",
+    local_include_dirs: ["inc"],
+
+    srcs: [
+        "main.cpp",
+        "ProximitySubHal.cpp",
+    ],
+
+    shared_libs: [
+        "android.hardware.sensors@2.1",
+        "libbase",
+        "libhidlbase",
+        "liblog",
+        "libutils",
+    ],
+
+    header_libs: [
+        "android.hardware.sensors@2.X-multihal.header",
+    ],
+
+    cflags: [
+        "-DLOG_TAG=\"android.hardware.sensors@2.1-impl.gborges\""
+    ],
+}
+
 cc_binary {
     name: "ProximityCli",
     srcs: ["tools/proximity_cli/ProximityCli.cpp"],
