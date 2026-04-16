@@ -1,4 +1,5 @@
 #include "ProximitySubHal.h"
+#include <cmath>
 
 ProximitySubHal::ProximitySubHal() {
     mSensorInfo.sensorHandle = kSensorHandle;
@@ -55,28 +56,30 @@ Return<Result> ProximitySubHal::injectSensorData_2_1(const Event&) { return Resu
 Return<void> ProximitySubHal::debug(const hidl_handle&, const hidl_vec<hidl_string>&) { return Void(); }
 
 void ProximitySubHal::sensorThreadLoop() {
-    float mockValue = 0.0f;
+    float t = 0.0f; // Manual time accumulator
+    const float kPi = 3.14159265358979323846f;
 
     while (!mStopThread) {
         if (mEnabled) {
-            mockValue = (mockValue == 0.0f) ? 1.0f : 0.0f;
+            float sineValue = 0.5f + 0.5f * std::sin(t);
 
             // Prepare the HIDL Event
             Event event;
             event.timestamp = android::elapsedRealtimeNano();
             event.sensorHandle = kSensorHandle;
             event.sensorType = sensors::V2_1::SensorType::PROXIMITY;
-            event.u.scalar = mockValue;
+            event.u.scalar = sineValue;
 
             std::vector<Event> events;
             events.push_back(event);
 
-            // Post events to the Multi-HAL Proxy
             if (mCallback != nullptr) {
                 mCallback->postEvents(events, mCallback->createScopedWakelock(false));
             }
+
+            t += 0.1f;
         }
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
