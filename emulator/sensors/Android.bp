@@ -1,0 +1,13 @@
+cc_binary {
+    name: "ProximityCli",
+    srcs: ["tools/proximity_cli/ProximityCli.cpp"],
+    vendor: true,
+    shared_libs: [
+        "libsensor",
+        "libutils",
+        "libbase",
+        "libandroid",
+        "liblog",
+    ],
+    cflags: ["-Wall", "-Werror"],
+}
