@@ -33,7 +33,12 @@ public:
     Return<Result> flush(int32_t sensorHandle) override;
     Return<Result> injectSensorData_2_1(const Event& event) override;
     Return<void> debug(const hidl_handle& fd, const hidl_vec<hidl_string>& args) override;
-    const std::string getName() override { return "ProximityPlusPlus-SubHAL"; }
+    const std::string getName() override { return "Proximity-Fake-Sensor-SubHAL"; }
+
+    // Direct Channel (Unsupported)
+    Return<void> registerDirectChannel(const SharedMemInfo& mem, registerDirectChannel_cb callback) override;
+    Return<Result> unregisterDirectChannel(int32_t channelHandle) override;
+    Return<void> configDirectReport(int32_t sensorHandle, int32_t channelHandle, RateLevel rate, configDirectReport_cb callback) override;
 
 private:
 void sensorThreadLoop();

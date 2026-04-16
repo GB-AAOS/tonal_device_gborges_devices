@@ -51,12 +51,6 @@ Return<Result> ProximitySubHal::activate(int32_t sensorHandle, bool enabled) {
     return Result::OK;
 }
 
-Return<Result> ProximitySubHal::setOperationMode(OperationMode) { return Result::OK; }
-Return<Result> ProximitySubHal::batch(int32_t, int64_t, int64_t) { return Result::OK; }
-Return<Result> ProximitySubHal::flush(int32_t) { return Result::OK; }
-Return<Result> ProximitySubHal::injectSensorData_2_1(const Event&) { return Result::INVALID_OPERATION; }
-Return<void> ProximitySubHal::debug(const hidl_handle&, const hidl_vec<hidl_string>&) { return Void(); }
-
 void ProximitySubHal::sensorThreadLoop() {
     float t = 0.0f; // Manual time accumulator
     const float kPi = 3.14159265358979323846f;
@@ -84,4 +78,40 @@ void ProximitySubHal::sensorThreadLoop() {
         
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+}
+
+
+// ========================================================
+//                Unused methods (stubs)
+// ========================================================
+
+Return<Result> ProximitySubHal::setOperationMode(OperationMode) { return Result::OK; }
+Return<Result> ProximitySubHal::batch(int32_t, int64_t, int64_t) { return Result::OK; }
+Return<Result> ProximitySubHal::flush(int32_t) { return Result::OK; }
+Return<Result> ProximitySubHal::injectSensorData_2_1(const Event&) { return Result::INVALID_OPERATION; }
+Return<void> ProximitySubHal::debug(const hidl_handle&, const hidl_vec<hidl_string>&) { return Void(); }
+
+// ========================================================
+//                Unsported methods (stubs)
+// ========================================================
+ 
+android::hardware::Return<void> ProximitySubHal::registerDirectChannel(
+    const android::hardware::sensors::V1_0::SharedMemInfo& /* mem */,
+    registerDirectChannel_cb callback) {
+    // We don't support direct channels for this fake sensor
+    callback(android::hardware::sensors::V1_0::Result::INVALID_OPERATION, -1 /* channelHandle */);
+    return android::hardware::Void();
+}
+
+android::hardware::Return<android::hardware::sensors::V1_0::Result> ProximitySubHal::unregisterDirectChannel(
+    int32_t /* channelHandle */) {
+    return android::hardware::sensors::V1_0::Result::INVALID_OPERATION;
+}
+
+android::hardware::Return<void> ProximitySubHal::configDirectReport(
+    int32_t /* sensorHandle */, int32_t /* channelHandle */,
+    android::hardware::sensors::V1_0::RateLevel /* rate */,
+    configDirectReport_cb callback) {
+    callback(android::hardware::sensors::V1_0::Result::INVALID_OPERATION, -1 /* sensorReportToken */);
+    return android::hardware::Void();
 }
