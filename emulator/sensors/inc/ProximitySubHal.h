@@ -21,8 +21,8 @@ using android::sp;
 
 class ProximitySubHal : public ISensorsSubHal {
 public:
-    ProximitySubHal() = default;
-    virtual ~ProximitySubHal() = default;
+    ProximitySubHal();
+    virtual ~ProximitySubHal();
 
     Return<Result> initialize(const sp<IHalProxyCallback>& halProxyCallback) override;
     Return<void> getSensorsList_2_1(getSensorsList_2_1_cb callback) override;
@@ -35,6 +35,13 @@ public:
     const std::string getName() override { return "ProximityPlusPlus-SubHAL"; }
 
 private:
+    void sensorThreadLoop();
+
+    sp<IHalProxyCallback> mCallback;
+    std::atomic<bool> mEnabled;
+    std::atomic<bool> mStopThread;
+    std::thread mThread;
+
     SensorInfo mSensorInfo;
     static constexpr int32_t kSensorHandle = 1;
 };
