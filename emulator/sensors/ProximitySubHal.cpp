@@ -3,6 +3,9 @@
 #include <chrono>
 #include <utils/SystemClock.h>
 
+const float kSensorFrequencyHz = 0.1f; // 0.1Hz
+const float kPi = 3.14159265358979323846f;
+
 ProximitySubHal::ProximitySubHal() {
     mSensorInfo.sensorHandle = kSensorHandle;
     mSensorInfo.name = "Proximity Fake Sensor";
@@ -52,19 +55,23 @@ Return<Result> ProximitySubHal::activate(int32_t sensorHandle, bool enabled) {
 }
 
 void ProximitySubHal::sensorThreadLoop() {
-    float t = 0.0f; // Manual time accumulator
-    const float kPi = 3.14159265358979323846f;
+    auto loopStartTime = std::chrono::steady_clock::now();
+    
+    // Calculate the interval based on the frequency
+    const auto interval = std::chrono::microseconds(static_cast<long long>(1000000.0f / kSensorFrequencyHz));
 
     while (!mStopThread) {
         if (mEnabled) {
-            float sineValue = 0.5f + 0.5f * std::sin(t);
+            auto now = std::chrono::steady_clock::now();
+            float elapsedSeconds = std::chrono::duration_cast<std::chrono::duration<float>>(now - loopStartTime).count();
 
-            // Prepare the HIDL Event
+            // Prepare HIDL Event
             Event event;
-            event.timestamp = android::elapsedRealtimeNano();
+            event.timestamp = android::elapsedRealtimeNano(); 
             event.sensorHandle = kSensorHandle;
             event.sensorType = sensors::V2_1::SensorType::PROXIMITY;
-            event.u.scalar = sineValue;
+
+            event.u.scalar = 0.5f + 0.5f * sin(2.0f * kPi * kSensorFrequencyHz * elapsedSeconds);
 
             std::vector<Event> events;
             events.push_back(event);
@@ -72,14 +79,12 @@ void ProximitySubHal::sensorThreadLoop() {
             if (mCallback != nullptr) {
                 mCallback->postEvents(events, mCallback->createScopedWakelock(false));
             }
-
-            t += 0.1f;
         }
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        // Sleep for the defined frequency interval
+        std::this_thread::sleep_for(interval);
     }
 }
-
 
 // ========================================================
 //                Unused methods (stubs)
