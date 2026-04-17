@@ -50,5 +50,5 @@ void sensorThreadLoop();
     std::atomic<bool> mStopThread;
     std::thread mThread;
     
-    static constexpr int32_t kSensorHandle = 1;
+    static constexpr int32_t kSensorHandle = 5;
 };

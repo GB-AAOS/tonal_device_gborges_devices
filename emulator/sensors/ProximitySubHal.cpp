@@ -13,9 +13,9 @@ ProximitySubHal::ProximitySubHal() {
     mSensorInfo.vendor = "GBorges";
     mSensorInfo.version = 1;
     mSensorInfo.type = sensors::V2_1::SensorType::PROXIMITY;
-    mSensorInfo.typeAsString = "android.sensor.proximity",
+    mSensorInfo.typeAsString = "android.sensor.proximity";
     mSensorInfo.maxRange = 1.0f;
-    mSensorInfo.resolution = 1.0f;
+    mSensorInfo.resolution = .01f;
     mSensorInfo.power = 0.05f;
     mSensorInfo.minDelay = 500000;   // 500ms
     mSensorInfo.fifoReservedEventCount = 0;
@@ -93,7 +93,7 @@ void ProximitySubHal::sensorThreadLoop() {
         }
         
         // Sleep for the fixed sampling interval
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
 
