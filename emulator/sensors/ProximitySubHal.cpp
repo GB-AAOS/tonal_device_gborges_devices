@@ -3,11 +3,14 @@
 #include <chrono>
 #include <utils/SystemClock.h>
 #include <android-base/properties.h>
+#include <log/log.h>
 
 const float kSensorFrequencyHz = 0.1f; // 0.1Hz
 const float kPi = 3.14159265358979323846f;
 
 ProximitySubHal::ProximitySubHal() {
+    ALOGD("Constructor: Initializing GBorges Proximity++ Sub-HAL");
+    
     mSensorInfo.sensorHandle = kSensorHandle;
     mSensorInfo.name = "Proximity Fake Sensor";
     mSensorInfo.vendor = "GBorges";
@@ -27,6 +30,8 @@ ProximitySubHal::ProximitySubHal() {
 }
 
 ProximitySubHal::~ProximitySubHal() {
+    ALOGI("Destructor: Shutting down thread");
+
     // Stop thread
     mStopThread = true;
     
@@ -37,6 +42,8 @@ ProximitySubHal::~ProximitySubHal() {
 }
 
 Return<void> ProximitySubHal::getSensorsList_2_1(getSensorsList_2_1_cb callback) {
+    ALOGD("getSensorsList_2_1 called by Multi-HAL");
+
     std::vector<SensorInfo> sensors;
     sensors.push_back(mSensorInfo);
     callback(sensors);
@@ -44,6 +51,8 @@ Return<void> ProximitySubHal::getSensorsList_2_1(getSensorsList_2_1_cb callback)
 }
 
 Return<Result> ProximitySubHal::initialize(const sp<IHalProxyCallback>& halProxyCallback) {
+    ALOGI("initialize: Connecting Sub-HAL to Multi-HAL callback");
+    
     mCallback = halProxyCallback;
     mStopThread = false;
 
@@ -52,12 +61,19 @@ Return<Result> ProximitySubHal::initialize(const sp<IHalProxyCallback>& halProxy
 }
 
 Return<Result> ProximitySubHal::activate(int32_t sensorHandle, bool enabled) {
-    if (sensorHandle != kSensorHandle) return Result::BAD_VALUE;
+    if (sensorHandle != kSensorHandle) {
+        ALOGE("activate: Received invalid handle %d", sensorHandle);
+        return Result::BAD_VALUE;
+    }
+
+    ALOGI("activate: Sensor %s", enabled ? "ENABLED" : "DISABLED");
+
     mEnabled = enabled;
     return Result::OK;
 }
 
 void ProximitySubHal::sensorThreadLoop() {
+    ALOGI("WorkerThread: Started");
     auto loopStartTime = std::chrono::steady_clock::now();
     
     while (!mStopThread) {
@@ -74,9 +90,10 @@ void ProximitySubHal::sensorThreadLoop() {
             float finalValue;
             if (overrideVal >= 0.0f && overrideVal <= 1.0f) {
                 finalValue = overrideVal;
+                ALOGV("Sensor Update: [OVERRIDE] Value: %.2f", finalValue);
             } else {
-                // Signal math stays the same, but now it's sampled every 500ms
                 finalValue = 0.5f + 0.5f * sin(2.0f * kPi * kSensorFrequencyHz * elapsedSeconds);
+                ALOGV("Sensor Update: [SINE] Value: %.2f", finalValue);
             }
 
             // Prepare HIDL Event
@@ -114,7 +131,6 @@ Return<void> ProximitySubHal::debug(const hidl_handle&, const hidl_vec<hidl_stri
 android::hardware::Return<void> ProximitySubHal::registerDirectChannel(
     const android::hardware::sensors::V1_0::SharedMemInfo& /* mem */,
     registerDirectChannel_cb callback) {
-    // We don't support direct channels for this fake sensor
     callback(android::hardware::sensors::V1_0::Result::INVALID_OPERATION, -1 /* channelHandle */);
     return android::hardware::Void();
 }
